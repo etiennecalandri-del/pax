@@ -1,5 +1,5 @@
 {
-  "name": "flightright-simulator",
+  "name": "pax",
   "version": "1.0.0",
   "description": "Simulateur de droits des passagers aériens - Règlement CE 261/2004",
   "main": "server.js",

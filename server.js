@@ -141,7 +141,7 @@ app.use('/api/admin', (req, res, next) => {
 
 // ── Start ────────────────────────────────────────────────────────────────────
 app.listen(PORT, () => {
-  console.log(`\n✈  FlightRight Simulator démarré !`);
+  console.log(`\n✈  PAX démarré !`);
   console.log(`   Simulateur  → http://localhost:${PORT}`);
   console.log(`   Admin       → http://localhost:${PORT}/admin\n`);
 });
