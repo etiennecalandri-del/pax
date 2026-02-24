@@ -20,8 +20,8 @@ document.addEventListener('DOMContentLoaded', () => {
   initAirportAC('depInput',  'depDropdown',  'depCode',  'depLabel');
   initAirportAC('arrInput',  'arrDropdown',  'arrCode',  'arrLabel');
 
-  // Auto-detect airline EU status when user types
-  document.getElementById('airlineInput').addEventListener('input', autoDetectAirlineEU);
+  // Init airline autocomplete
+  initAirlineAC();
 
   // Show/hide rerouting question based on cancellation notice
   document.querySelectorAll('input[name="cancellationNotice"]').forEach(r => {
@@ -101,12 +101,96 @@ function renderAC(airports, dropdown, input, codeId, labelId) {
   });
 }
 
+// ── Airline Autocomplete ──────────────────────────────────────────────────────
+function initAirlineAC() {
+  const input    = document.getElementById('airlineInput');
+  const dropdown = document.getElementById('airlineDropdown');
+  let focusIdx   = -1;
+
+  input.addEventListener('input', () => {
+    const q = input.value.trim();
+    if (q.length < 1) { dropdown.classList.remove('open'); return; }
+    const matches = searchAirlines(q);
+    renderAirlineAC(matches, dropdown, input);
+    focusIdx = -1;
+  });
+
+  input.addEventListener('keydown', e => {
+    const items = dropdown.querySelectorAll('.ac-item');
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      focusIdx = Math.min(focusIdx + 1, items.length - 1);
+      items.forEach((it, i) => it.classList.toggle('focused', i === focusIdx));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      focusIdx = Math.max(focusIdx - 1, 0);
+      items.forEach((it, i) => it.classList.toggle('focused', i === focusIdx));
+    } else if (e.key === 'Enter' && focusIdx >= 0) {
+      e.preventDefault();
+      items[focusIdx].click();
+    } else if (e.key === 'Escape') {
+      dropdown.classList.remove('open');
+    }
+  });
+
+  document.addEventListener('click', e => {
+    if (!input.contains(e.target) && !dropdown.contains(e.target)) {
+      dropdown.classList.remove('open');
+    }
+  });
+}
+
+function renderAirlineAC(airlines, dropdown, input) {
+  if (!airlines.length) { dropdown.classList.remove('open'); return; }
+  dropdown.innerHTML = airlines.map(a => {
+    const euTag = a.eu === true
+      ? `<span class="ac-eu">UE</span>`
+      : a.eu === 'uk'
+        ? `<span class="ac-uk">UK</span>`
+        : '';
+    return `<div class="ac-item" data-name="${a.name}" data-iata="${a.iata}" data-eu="${a.eu}">
+      <span class="ac-iata">${a.iata}</span>
+      <span class="ac-name">${a.name}</span>
+      ${euTag}
+    </div>`;
+  }).join('');
+  dropdown.classList.add('open');
+
+  dropdown.querySelectorAll('.ac-item').forEach(item => {
+    item.addEventListener('click', () => {
+      input.value = item.dataset.name;
+      dropdown.classList.remove('open');
+      clearError('err-airline');
+      // Auto-detect EU status from airline data
+      autoDetectAirlineEU(item.dataset.eu);
+    });
+  });
+}
+
 // ── Auto-detect EU airline ────────────────────────────────────────────────────
-function autoDetectAirlineEU() {
+function autoDetectAirlineEU(euFlag) {
+  // If called with explicit eu flag from autocomplete selection
+  if (euFlag !== undefined) {
+    const isEU = euFlag === 'true' || euFlag === 'uk';
+    const val  = isEU ? 'yes' : 'no';
+    const r = document.querySelector(`input[name="airlineIsEU"][value="${val}"]`);
+    if (r) {
+      r.checked = true;
+      // Highlight the selected card
+      document.querySelectorAll('input[name="airlineIsEU"]').forEach(radio => {
+        const card = radio.closest('.radio-card');
+        if (card) card.style.border = '';
+      });
+      const card = r.closest('.radio-card');
+      if (card) card.style.border = '2px solid var(--navy)';
+    }
+    return;
+  }
+  // Fallback: try to detect from typed text using airlines.js
   const val = document.getElementById('airlineInput').value.trim();
   if (!val) return;
-  const isEU = EU_AIRLINES.has(val);
-  if (isEU) {
+  const eu = isAirlineEU(val);
+  if (eu === true || eu === 'uk') {
     const r = document.querySelector('input[name="airlineIsEU"][value="yes"]');
     if (r) r.checked = true;
     const card = r ? r.closest('.radio-card') : null;

@@ -116,7 +116,10 @@
         <!-- Compagnie aérienne -->
         <div class="form-group full">
           <label for="airlineInput">Compagnie aérienne <span class="req">*</span></label>
-          <input type="text" id="airlineInput" placeholder="Ex : Air France, Ryanair, Emirates…" autocomplete="off">
+          <div class="ac-wrapper">
+            <input type="text" id="airlineInput" placeholder="Ex : Air France, Ryanair, Emirates…" autocomplete="off">
+            <div class="ac-dropdown" id="airlineDropdown"></div>
+          </div>
           <span class="field-error" id="err-airline"></span>
         </div>
 
@@ -736,6 +739,7 @@
 
 <!-- ═══ SCRIPTS ═══════════════════════════════════════════════════════════ -->
 <script src="js/airports.js"></script>
+<script src="js/airlines.js"></script>
 <script src="js/calculator.js"></script>
 <script src="js/letter.js"></script>
 <script src="js/app.js"></script>

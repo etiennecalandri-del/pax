@@ -95,7 +95,8 @@ function calculateEligibility(data) {
   // ── 2. Champ d'application territorial ──────────────────────────────────
   const depAp = AIRPORTS_MAP[data.departure] || null;
   const arrAp = AIRPORTS_MAP[data.arrival]   || null;
-  const airlineIsEU = data.airlineIsEU === 'yes' || EU_AIRLINES.has(data.airline);
+  const airlineEUFromDB = typeof isAirlineEU === 'function' ? isAirlineEU(data.airline) : false;
+  const airlineIsEU = data.airlineIsEU === 'yes' || EU_AIRLINES.has(data.airline) || airlineEUFromDB === true || airlineEUFromDB === 'uk';
 
   if (depAp && (depAp.eu === true || depAp.eu === 'uk')) {
     result.regulationApplies = true;
