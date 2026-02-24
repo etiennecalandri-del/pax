@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FlightRight Simulator — Indemnisation passagers CE 261/2004</title>
+  <meta name="description" content="Simulateur gratuit de droits des passagers aériens. Retard, annulation, surbooking — calculez votre indemnisation en 2 minutes selon le règlement CE 261/2004.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ═══ BANNIÈRE ALERTE ══════════════════════════════════════════════════ -->
+<div id="alert-banner">
+  ⚠️&nbsp; <strong>Révision en cours&nbsp;:</strong> une proposition de réforme du règlement CE 261/2004 est en discussion au niveau européen. Elle pourrait réduire certains montants et relever le seuil de déclenchement. <strong>Agissez avant l'adoption du nouveau texte.</strong>
+  <button class="close-banner" onclick="document.getElementById('alert-banner').style.display='none'" title="Fermer">✕</button>
+</div>
+
+<!-- ═══ HEADER ═══════════════════════════════════════════════════════════ -->
+<header>
+  <nav>
+    <div class="logo">
+      <div class="logo-icon">✈</div>
+      Flight<span>Right</span>
+    </div>
+    <div class="nav-links" id="navLinks">
+      <a href="#simulator">Simulateur</a>
+      <a href="#what-if-refused">Recours</a>
+      <a href="#faq">FAQ</a>
+      <a href="/admin" class="btn-nav">Admin</a>
+    </div>
+    <button class="hamburger" id="hamburger" aria-label="Menu" onclick="toggleMenu()">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+</header>
+
+<!-- ═══ HERO ══════════════════════════════════════════════════════════════ -->
+<section id="hero">
+  <div class="hero-badge">Règlement CE 261/2004 • 100 % gratuit</div>
+  <h1>Votre vol perturbé&nbsp;?<br>Réclamez jusqu'à <em>600&nbsp;€</em></h1>
+  <p class="lead">Retard, annulation, surbooking — vérifiez vos droits en 2&nbsp;minutes et obtenez une lettre de réclamation prête à envoyer.</p>
+  <a href="#simulator" class="hero-cta">Vérifier mes droits →</a>
+  <div class="hero-stats">
+    <div class="hero-stat"><span class="num" id="statTotal">–</span><span class="lbl">simulations</span></div>
+    <div class="hero-stat"><span class="num">400&nbsp;€</span><span class="lbl">montant moyen</span></div>
+    <div class="hero-stat"><span class="num">CE 261/2004</span><span class="lbl">règlement EU</span></div>
+  </div>
+</section>
+
+<!-- ═══ SIMULATEUR ════════════════════════════════════════════════════════ -->
+<section id="simulator">
+  <div class="section-inner">
+    <h2 class="section-title" style="text-align:center">Simulateur de droits</h2>
+    <p class="section-sub" style="text-align:center">3 étapes — résultat immédiat</p>
+
+    <!-- Stepper -->
+    <div class="stepper">
+      <div class="step-item active" id="si-1">
+        <div class="step-circle">1</div>
+        <span class="step-label">Le vol</span>
+      </div>
+      <div class="step-item" id="si-2">
+        <div class="step-circle">2</div>
+        <span class="step-label">L'incident</span>
+      </div>
+      <div class="step-item" id="si-3">
+        <div class="step-circle">3</div>
+        <span class="step-label">Vos coordonnées</span>
+      </div>
+    </div>
+
+    <!-- ── Étape 1 : Le vol ────────────────────────────────── -->
+    <div class="form-card active" id="step-1">
+      <h2>Informations sur le vol</h2>
+      <p class="step-desc">Renseignez les détails de votre trajet.</p>
+
+      <div class="form-grid">
+        <!-- Départ -->
+        <div class="form-group">
+          <label for="depInput">Aéroport de départ <span class="req">*</span></label>
+          <div class="ac-wrapper">
+            <input type="text" id="depInput" placeholder="Ex : Paris CDG, London LHR…" autocomplete="off">
+            <div class="ac-dropdown" id="depDropdown"></div>
+          </div>
+          <input type="hidden" id="depCode">
+          <span class="field-error" id="err-dep"></span>
+        </div>
+
+        <!-- Arrivée -->
+        <div class="form-group">
+          <label for="arrInput">Aéroport d'arrivée <span class="req">*</span></label>
+          <div class="ac-wrapper">
+            <input type="text" id="arrInput" placeholder="Ex : New York JFK, Madrid MAD…" autocomplete="off">
+            <div class="ac-dropdown" id="arrDropdown"></div>
+          </div>
+          <input type="hidden" id="arrCode">
+          <span class="field-error" id="err-arr"></span>
+        </div>
+
+        <!-- Date du vol -->
+        <div class="form-group">
+          <label for="flightDate">Date du vol <span class="req">*</span></label>
+          <input type="date" id="flightDate" max="">
+          <span class="field-error" id="err-date"></span>
+        </div>
+
+        <!-- Numéro de vol -->
+        <div class="form-group">
+          <label for="flightNumber">Numéro de vol <span style="font-weight:400;color:var(--gray-400)">(optionnel)</span></label>
+          <input type="text" id="flightNumber" placeholder="Ex : AF123, LH456…">
+        </div>
+
+        <!-- Compagnie aérienne -->
+        <div class="form-group full">
+          <label for="airlineInput">Compagnie aérienne <span class="req">*</span></label>
+          <input type="text" id="airlineInput" placeholder="Ex : Air France, Ryanair, Emirates…" autocomplete="off">
+          <span class="field-error" id="err-airline"></span>
+        </div>
+
+        <!-- Compagnie UE/hors UE -->
+        <div class="form-group full">
+          <label>La compagnie est-elle une compagnie européenne (UE/EEE/UK) ? <span class="req">*</span></label>
+          <div class="radio-group horizontal">
+            <label class="radio-card">
+              <input type="radio" name="airlineIsEU" value="yes">
+              <span class="radio-dot"></span>
+              <span class="rc-text">
+                <span class="rc-title">Oui — compagnie européenne</span>
+                <span class="rc-sub">Air France, Lufthansa, Ryanair, easyJet, etc.</span>
+              </span>
+            </label>
+            <label class="radio-card">
+              <input type="radio" name="airlineIsEU" value="no">
+              <span class="radio-dot"></span>
+              <span class="rc-text">
+                <span class="rc-title">Non — compagnie non-européenne</span>
+                <span class="rc-sub">Emirates, American Airlines, Turkish, etc.</span>
+              </span>
+            </label>
+            <label class="radio-card">
+              <input type="radio" name="airlineIsEU" value="unknown">
+              <span class="radio-dot"></span>
+              <span class="rc-text"><span class="rc-title">Je ne sais pas</span></span>
+            </label>
+          </div>
+          <span class="field-error" id="err-euairline"></span>
+        </div>
+
+        <!-- Pays de départ -->
+        <div class="form-group full">
+          <label for="departureCountry">Pays de départ du vol <span class="req">*</span></label>
+          <select id="departureCountry">
+            <option value="">— Sélectionnez un pays —</option>
+            <option value="FR">France</option>
+            <option value="DE">Allemagne</option>
+            <option value="ES">Espagne</option>
+            <option value="IT">Italie</option>
+            <option value="NL">Pays-Bas</option>
+            <option value="BE">Belgique</option>
+            <option value="PT">Portugal</option>
+            <option value="GR">Grèce</option>
+            <option value="AT">Autriche</option>
+            <option value="PL">Pologne</option>
+            <option value="SE">Suède</option>
+            <option value="DK">Danemark</option>
+            <option value="FI">Finlande</option>
+            <option value="IE">Irlande</option>
+            <option value="CZ">Rép. Tchèque</option>
+            <option value="HU">Hongrie</option>
+            <option value="RO">Roumanie</option>
+            <option value="BG">Bulgarie</option>
+            <option value="HR">Croatie</option>
+            <option value="LV">Lettonie</option>
+            <option value="LT">Lituanie</option>
+            <option value="EE">Estonie</option>
+            <option value="SK">Slovaquie</option>
+            <option value="SI">Slovénie</option>
+            <option value="CY">Chypre</option>
+            <option value="MT">Malte</option>
+            <option value="LU">Luxembourg</option>
+            <option value="NO">Norvège</option>
+            <option value="IS">Islande</option>
+            <option value="CH">Suisse</option>
+            <option value="GB">Royaume-Uni</option>
+            <option value="OTHER">Autre pays</option>
+          </select>
+          <span class="field-error" id="err-country"></span>
+        </div>
+      </div>
+
+      <div class="form-nav">
+        <div></div>
+        <button class="btn-primary" onclick="goToStep(2)">Étape suivante →</button>
+      </div>
+    </div>
+
+    <!-- ── Étape 2 : L'incident ───────────────────────────── -->
+    <div class="form-card" id="step-2">
+      <h2>L'incident</h2>
+      <p class="step-desc">Décrivez ce qui s'est passé lors de votre vol.</p>
+
+      <div class="form-grid cols-1">
+        <!-- Type d'incident -->
+        <div class="form-group">
+          <label>Type d'incident <span class="req">*</span></label>
+          <div class="radio-group" id="incidentTypeGroup">
+            <label class="radio-card" onclick="showIncidentSub('delay')">
+              <input type="radio" name="incidentType" value="delay">
+              <span class="radio-dot"></span>
+              <span class="rc-icon">⏱</span>
+              <span class="rc-text">
+                <span class="rc-title">Retard</span>
+                <span class="rc-sub">Votre vol a décollé / atterri avec du retard</span>
+              </span>
+            </label>
+            <label class="radio-card" onclick="showIncidentSub('cancellation')">
+              <input type="radio" name="incidentType" value="cancellation">
+              <span class="radio-dot"></span>
+              <span class="rc-icon">✕</span>
+              <span class="rc-text">
+                <span class="rc-title">Annulation</span>
+                <span class="rc-sub">Votre vol a été annulé par la compagnie</span>
+              </span>
+            </label>
+            <label class="radio-card" onclick="showIncidentSub('denied_boarding')">
+              <input type="radio" name="incidentType" value="denied_boarding">
+              <span class="radio-dot"></span>
+              <span class="rc-icon">🚫</span>
+              <span class="rc-text">
+                <span class="rc-title">Refus d'embarquement (surbooking)</span>
+                <span class="rc-sub">Vous n'avez pas pu monter à bord malgré une réservation confirmée</span>
+              </span>
+            </label>
+          </div>
+          <span class="field-error" id="err-incident"></span>
+        </div>
+
+        <!-- Sous-formulaire : Retard -->
+        <div class="sub-form" id="sub-delay">
+          <div class="form-group">
+            <label>Durée du retard à l'ARRIVÉE <span class="req">*</span></label>
+            <div class="radio-group">
+              <label class="radio-card">
+                <input type="radio" name="delayDuration" value="<2h">
+                <span class="radio-dot"></span>
+                <span class="rc-text"><span class="rc-title">Moins de 2 heures</span></span>
+              </label>
+              <label class="radio-card">
+                <input type="radio" name="delayDuration" value="2h-3h">
+                <span class="radio-dot"></span>
+                <span class="rc-text">
+                  <span class="rc-title">Entre 2h et 3h</span>
+                  <span class="rc-sub">Droits d'assistance uniquement</span>
+                </span>
+              </label>
+              <label class="radio-card">
+                <input type="radio" name="delayDuration" value=">3h">
+                <span class="radio-dot"></span>
+                <span class="rc-text">
+                  <span class="rc-title">3 heures ou plus</span>
+                  <span class="rc-sub">Seuil d'indemnisation CE 261/2004 (CJUE Sturgeon)</span>
+                </span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sous-formulaire : Annulation -->
+        <div class="sub-form" id="sub-cancellation">
+          <div class="form-group">
+            <label>Délai de prévenance (à quelle date avez-vous été informé ?) <span class="req">*</span></label>
+            <div class="radio-group">
+              <label class="radio-card">
+                <input type="radio" name="cancellationNotice" value=">14">
+                <span class="radio-dot"></span>
+                <span class="rc-text">
+                  <span class="rc-title">Plus de 14 jours avant le départ</span>
+                  <span class="rc-sub">Pas d'indemnisation — remboursement du billet uniquement</span>
+                </span>
+              </label>
+              <label class="radio-card">
+                <input type="radio" name="cancellationNotice" value="7-14">
+                <span class="radio-dot"></span>
+                <span class="rc-text">
+                  <span class="rc-title">Entre 7 et 14 jours avant</span>
+                  <span class="rc-sub">Indemnisation possible selon le réacheminement</span>
+                </span>
+              </label>
+              <label class="radio-card">
+                <input type="radio" name="cancellationNotice" value="<7">
+                <span class="radio-dot"></span>
+                <span class="rc-text">
+                  <span class="rc-title">Moins de 7 jours avant (ou le jour J)</span>
+                  <span class="rc-sub">Indemnisation complète probable</span>
+                </span>
+              </label>
+            </div>
+          </div>
+          <div class="form-group" id="reroutingGroup" style="display:none">
+            <label>Un réacheminement vous a-t-il été proposé ?</label>
+            <div class="radio-group">
+              <label class="radio-card">
+                <input type="radio" name="reroutingOffered" value="yes">
+                <span class="radio-dot"></span>
+                <span class="rc-text">
+                  <span class="rc-title">Oui, réacheminement dans les délais</span>
+                  <span class="rc-sub">Peut réduire l'indemnisation de 50 %</span>
+                </span>
+              </label>
+              <label class="radio-card">
+                <input type="radio" name="reroutingOffered" value="no">
+                <span class="radio-dot"></span>
+                <span class="rc-text"><span class="rc-title">Non ou hors délai</span></span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sous-formulaire : Refus d'embarquement -->
+        <div class="sub-form" id="sub-denied_boarding">
+          <div class="form-group">
+            <div class="warning-card" style="margin:0">
+              <span class="w-icon">ℹ️</span>
+              <p>Le refus d'embarquement involontaire (surbooking) donne droit à une indemnisation immédiate. Aucune exception pour "circonstances extraordinaires" n'est applicable dans ce cas (art. 4 CE 261/2004).</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Circonstances extraordinaires -->
+        <div class="form-group" id="extraordinaryGroup">
+          <label>Motif invoqué par la compagnie</label>
+          <div class="radio-group">
+            <label class="radio-card">
+              <input type="radio" name="extraordinaryCircumstances" value="no">
+              <span class="radio-dot"></span>
+              <span class="rc-text">
+                <span class="rc-title">Aucun motif extraordinaire mentionné</span>
+                <span class="rc-sub">Probabilité de succès élevée</span>
+              </span>
+            </label>
+            <label class="radio-card">
+              <input type="radio" name="extraordinaryCircumstances" value="yes">
+              <span class="radio-dot"></span>
+              <span class="rc-text">
+                <span class="rc-title">Circonstances extraordinaires invoquées</span>
+                <span class="rc-sub">Météo, grève ATC, etc. — la charge de la preuve incombe à la compagnie</span>
+              </span>
+            </label>
+            <label class="radio-card">
+              <input type="radio" name="extraordinaryCircumstances" value="not_communicated">
+              <span class="radio-dot"></span>
+              <span class="rc-text">
+                <span class="rc-title">Non communiqué / je ne sais pas</span>
+              </span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-nav">
+        <button class="btn-secondary" onclick="goToStep(1)">← Retour</button>
+        <button class="btn-primary" onclick="goToStep(3)">Étape suivante →</button>
+      </div>
+    </div>
+
+    <!-- ── Étape 3 : Vos coordonnées ─────────────────────── -->
+    <div class="form-card" id="step-3">
+      <h2>Vos coordonnées</h2>
+      <p class="step-desc">Ces informations sont utilisées uniquement pour personnaliser votre lettre — elles ne sont pas transmises à nos serveurs.</p>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="firstName">Prénom <span class="req">*</span></label>
+          <input type="text" id="firstName" placeholder="Votre prénom">
+          <span class="field-error" id="err-first"></span>
+        </div>
+        <div class="form-group">
+          <label for="lastName">Nom <span class="req">*</span></label>
+          <input type="text" id="lastName" placeholder="Votre nom de famille">
+          <span class="field-error" id="err-last"></span>
+        </div>
+        <div class="form-group full">
+          <label for="emailInput">Adresse e-mail <span class="req">*</span></label>
+          <input type="email" id="emailInput" placeholder="votre@email.com">
+          <span class="field-error" id="err-email"></span>
+        </div>
+        <div class="form-group full">
+          <label for="residenceCountry">Pays de résidence</label>
+          <select id="residenceCountry">
+            <option value="">— Optionnel —</option>
+            <option value="FR">France</option>
+            <option value="BE">Belgique</option>
+            <option value="CH">Suisse</option>
+            <option value="LU">Luxembourg</option>
+            <option value="DE">Allemagne</option>
+            <option value="ES">Espagne</option>
+            <option value="IT">Italie</option>
+            <option value="GB">Royaume-Uni</option>
+            <option value="OTHER">Autre</option>
+          </select>
+        </div>
+        <div class="form-group full">
+          <label>Disposiez-vous d'une réservation confirmée ? <span class="req">*</span></label>
+          <div class="radio-group horizontal">
+            <label class="radio-card">
+              <input type="radio" name="confirmedBooking" value="yes">
+              <span class="radio-dot"></span>
+              <span class="rc-text"><span class="rc-title">Oui</span></span>
+            </label>
+            <label class="radio-card">
+              <input type="radio" name="confirmedBooking" value="no">
+              <span class="radio-dot"></span>
+              <span class="rc-text"><span class="rc-title">Non</span></span>
+            </label>
+          </div>
+          <span class="field-error" id="err-booking"></span>
+        </div>
+        <div class="form-group full">
+          <label>Vous étiez-vous présenté(e) à l'enregistrement dans les délais ? <span class="req">*</span></label>
+          <div class="radio-group horizontal">
+            <label class="radio-card">
+              <input type="radio" name="checkedIn" value="yes">
+              <span class="radio-dot"></span>
+              <span class="rc-text"><span class="rc-title">Oui</span></span>
+            </label>
+            <label class="radio-card">
+              <input type="radio" name="checkedIn" value="no">
+              <span class="radio-dot"></span>
+              <span class="rc-text"><span class="rc-title">Non</span></span>
+            </label>
+          </div>
+          <span class="field-error" id="err-checkin"></span>
+        </div>
+      </div>
+
+      <div class="form-nav">
+        <button class="btn-secondary" onclick="goToStep(2)">← Retour</button>
+        <button class="btn-primary gold" id="submitBtn" onclick="submitSimulation()">
+          <span id="submitLabel">Calculer mes droits</span>
+          <span id="submitLoader" style="display:none"><span class="loader"></span></span>
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ RÉSULTATS ═════════════════════════════════════════════════════════ -->
+<section id="results">
+  <div class="section-inner">
+
+    <!-- Verdict principal -->
+    <div class="result-hero" id="resultHero">
+      <div class="result-status-badge eligible" id="resultBadge">✅ Éligible à une indemnisation</div>
+      <div class="result-amount" id="resultAmount">400 €</div>
+      <div class="result-amount-label">Indemnisation forfaitaire CE 261/2004</div>
+      <div class="result-route" id="resultRoute">Paris CDG → New York JFK</div>
+      <div class="result-incident" id="resultIncident">Retard de plus de 3 heures</div>
+      <div class="probability-wrap">
+        <div class="probability-label">
+          <span>Score de probabilité de succès</span>
+          <span id="probPct">–</span>
+        </div>
+        <div class="probability-bar-bg">
+          <div class="probability-bar" id="probBar" style="width:0%"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cartes d'info -->
+    <div class="result-cards">
+      <div class="result-card">
+        <div class="rc-icon-wrap" style="background:rgba(10,22,40,.06)">✈</div>
+        <div class="rc-label">Distance du vol</div>
+        <div class="rc-value" id="rcDistance">–</div>
+        <div class="rc-sub" id="rcDistCat">–</div>
+      </div>
+      <div class="result-card">
+        <div class="rc-icon-wrap" style="background:rgba(22,163,74,.08)">⚖️</div>
+        <div class="rc-label">Base légale</div>
+        <div class="rc-value" id="rcLegal" style="font-size:.88rem;line-height:1.4">–</div>
+      </div>
+      <div class="result-card">
+        <div class="rc-icon-wrap" style="background:rgba(217,119,6,.08)">📅</div>
+        <div class="rc-label">Délai de prescription</div>
+        <div class="rc-value" id="rcPrescription">–</div>
+        <div class="rc-sub" id="rcPrescSub">–</div>
+      </div>
+      <div class="result-card">
+        <div class="rc-icon-wrap" style="background:var(--red-bg)">⏰</div>
+        <div class="rc-label">Date limite pour agir</div>
+        <div class="rc-value" id="rcDeadline">–</div>
+        <div class="rc-sub" id="rcDeadlineSub">–</div>
+      </div>
+    </div>
+
+    <!-- Explication juridique -->
+    <div class="result-explanation" id="resultExplanation">
+      <h3>Explication juridique</h3>
+      <ul id="reasonsList"></ul>
+    </div>
+
+    <!-- Avertissements -->
+    <div class="result-warnings" id="resultWarnings"></div>
+
+    <!-- Droits d'assistance -->
+    <div class="assistance-card" id="assistanceCard" style="display:none">
+      <h3>✅ Vos droits d'assistance (indépendants de l'indemnisation)</h3>
+      <ul id="assistanceList"></ul>
+    </div>
+
+    <!-- Prescription info -->
+    <div class="prescription-info">
+      <h4>⏳ Délai de prescription applicable</h4>
+      <p id="prescriptionDetail">–</p>
+      <div class="prescription-note">
+        ⚠️ <strong>Avertissement&nbsp;:</strong> Le règlement CE 261/2004 ne fixe pas de délai de prescription. Chaque État membre applique ses propres règles nationales. Ces délais sont indicatifs&nbsp;— consultez un professionnel pour votre situation spécifique.
+      </div>
+    </div>
+
+    <!-- CTAs -->
+    <div class="result-cta-area" style="margin-top:32px">
+      <button class="btn-primary gold" id="generateLetterBtn" onclick="showLetterSection()" style="font-size:1.05rem;padding:16px 32px">
+        ✉️ Générer ma lettre de réclamation
+      </button>
+      <button class="btn-ghost" onclick="resetSimulator()">↩ Nouvelle simulation</button>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ LETTRE DE RÉCLAMATION ══════════════════════════════════════════════ -->
+<section id="letter-section">
+  <div class="section-inner letter-wrapper">
+    <h2 class="section-title">Votre lettre de réclamation</h2>
+    <p class="section-sub">Lettre formelle pré-remplie — références légales CE 261/2004 incluses.</p>
+
+    <!-- Toolbar -->
+    <div class="letter-toolbar">
+      <button class="btn-primary" onclick="copyLetter()">📋 Copier le texte</button>
+      <button class="btn-secondary" onclick="printLetter()">🖨 Imprimer / PDF gratuit</button>
+    </div>
+
+    <!-- Aperçu lettre (accessible librement) -->
+    <div class="letter-preview" id="letterText"></div>
+
+    <!-- Bloc premium pour PDF téléchargeable -->
+    <div class="premium-block" id="premiumBlock" style="margin-top:24px">
+      <div style="font-size:2rem;margin-bottom:12px">📄</div>
+      <h3>Télécharger le PDF formaté</h3>
+      <p>Obtenez la lettre mise en page professionnellement, prête à imprimer et envoyer en recommandé.</p>
+      <button class="btn-premium" onclick="showPremiumMsg()">Débloquer — 4,99&nbsp;€</button>
+      <p style="margin-top:12px;font-size:.78rem;opacity:.5">Paiement sécurisé — accès immédiat</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ ET SI LA COMPAGNIE REFUSE ? ═══════════════════════════════════════ -->
+<section id="what-if-refused" class="section">
+  <div class="section-inner">
+    <h2 class="section-title">Et si la compagnie refuse de payer&nbsp;?</h2>
+    <p class="section-sub">Guide de recours en 4 étapes — spécifique France</p>
+
+    <div class="refuse-steps">
+      <div class="refuse-step">
+        <div class="refuse-step-num">1</div>
+        <div>
+          <h3>Relance auprès de la compagnie</h3>
+          <p>Renvoyez votre lettre en recommandé avec accusé de réception. Précisez que vous attendez une réponse sous 15 jours. Conservez tous les accusés de réception. Si vous avez utilisé une agence de voyage, contactez-la également.</p>
+        </div>
+      </div>
+
+      <div class="refuse-step highlight-step">
+        <div class="refuse-step-num">2</div>
+        <div>
+          <h3>Médiation obligatoire <span class="new-badge">Nouveau</span></h3>
+          <p>Depuis le <strong>7 février 2026</strong>, la saisine du médiateur de la consommation est <strong>obligatoire</strong> avant tout recours judiciaire (art. L616-1 Code de la consommation). Saisissez la <strong>Médiation Tourisme et Voyage (MTV)</strong>&nbsp;: <a href="https://www.mtv.travel" target="_blank" rel="noopener">www.mtv.travel</a>. Délai&nbsp;: 90 jours. Gratuit pour le consommateur.</p>
+        </div>
+      </div>
+
+      <div class="refuse-step">
+        <div class="refuse-step-num">3</div>
+        <div>
+          <h3>Saisine de la DGAC (si médiation échoue)</h3>
+          <p>La Direction Générale de l'Aviation Civile est l'autorité nationale de contrôle en France (art. 16 CE 261/2004). Elle peut mettre en demeure la compagnie. Formulaire en ligne sur <a href="https://www.service-public.fr" target="_blank" rel="noopener">service-public.fr</a>. La DGAC ne peut pas forcer le paiement individuel mais documente les manquements.</p>
+        </div>
+      </div>
+
+      <div class="refuse-step">
+        <div class="refuse-step-num">4</div>
+        <div>
+          <h3>Recours judiciaire</h3>
+          <p>Après l'échec de la médiation, saisissez le tribunal judiciaire de votre domicile (sauf clause contraire dans les CGV). Pour les litiges ≤&nbsp;5&nbsp;000&nbsp;€, la procédure simplifiée (art. 843 CPC) est possible sans avocat. Conservez tous vos justificatifs et correspondances.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ FAQ ═══════════════════════════════════════════════════════════════ -->
+<section id="faq" class="section">
+  <div class="section-inner">
+    <h2 class="section-title">FAQ juridique</h2>
+    <p class="section-sub">Les questions les plus fréquentes sur le règlement CE 261/2004</p>
+
+    <div class="faq-list">
+
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">
+          Qu'est-ce que le règlement CE 261/2004 ?
+          <div class="faq-chevron">▾</div>
+        </div>
+        <div class="faq-a">
+          Le Règlement (CE) n°&nbsp;261/2004 du Parlement européen et du Conseil du 11 février 2004 établit des règles communes en matière d'indemnisation et d'assistance des passagers aériens en cas de refus d'embarquement, d'annulation ou de retard important. Il s'impose à toutes les compagnies dans son champ d'application, quelles que soient leurs conditions générales.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">
+          Quels vols sont couverts par ce règlement ?
+          <div class="faq-chevron">▾</div>
+        </div>
+        <div class="faq-a">
+          Le règlement s'applique dans deux situations&nbsp;:
+          <ul>
+            <li><strong>Tout vol au départ d'un aéroport situé dans un État membre de l'UE, de l'EEE (Norvège, Islande) ou de la Suisse</strong>, quelle que soit la nationalité de la compagnie.</li>
+            <li><strong>Tout vol à destination d'un aéroport de l'UE/EEE, opéré par une compagnie européenne</strong>, au départ d'un pays tiers.</li>
+          </ul>
+          Pour les vols depuis le Royaume-Uni, le règlement UK 261 (réglementation équivalente post-Brexit) s'applique.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">
+          Qu'est-ce que les "circonstances extraordinaires" ?
+          <div class="faq-chevron">▾</div>
+        </div>
+        <div class="faq-a">
+          Les circonstances extraordinaires exonèrent la compagnie de l'indemnisation (mais <strong>pas de l'obligation d'assistance</strong>). Ce sont des événements que la compagnie ne pouvait pas éviter même en prenant toutes les mesures raisonnables. Exemples reconnus par la CJUE&nbsp;:
+          <ul>
+            <li>Conditions météorologiques incompatibles avec le vol</li>
+            <li>Grève des contrôleurs aériens (externe)</li>
+            <li>Fermeture d'espace aérien / risque sécurité</li>
+            <li>Actes de sabotage ou de terrorisme</li>
+          </ul>
+          <strong>Ne constituent pas des circonstances extraordinaires&nbsp;:</strong> les pannes techniques ordinaires, les grèves du personnel de la compagnie, le sous-effectif, les problèmes de planning. La charge de la preuve incombe entièrement à la compagnie (CJUE, Wallentin-Hermann, C-549/07, 22 déc. 2008).
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">
+          Combien de temps ai-je pour réclamer ?
+          <div class="faq-chevron">▾</div>
+        </div>
+        <div class="faq-a">
+          <strong>Le règlement CE 261/2004 ne fixe aucun délai de prescription.</strong> Chaque État membre applique son droit national. Les délais courent généralement à compter de la date du vol.
+          <ul>
+            <li><strong>France&nbsp;:</strong> 5 ans (art. 2224 Code civil — Cass. civ., oct. 2019)</li>
+            <li><strong>Allemagne&nbsp;:</strong> 3 ans (§ 195 BGB)</li>
+            <li><strong>Espagne&nbsp;:</strong> 5 ans</li>
+            <li><strong>Royaume-Uni&nbsp;:</strong> 6 ans (Limitation Act 1980)</li>
+            <li><strong>Belgique / Pays-Bas&nbsp;:</strong> 2 ans</li>
+          </ul>
+          <em>Ces délais sont indicatifs — consultez un professionnel pour votre situation.</em>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">
+          La compagnie peut-elle refuser de payer malgré le règlement ?
+          <div class="faq-chevron">▾</div>
+        </div>
+        <div class="faq-a">
+          Oui, la compagnie peut contester. Elle peut invoquer&nbsp;: des circonstances extraordinaires (burden of proof sur la compagnie), un réacheminement satisfaisant réduisant l'indemnisation, ou tout simplement refuser sans motif valable et attendre une action en justice. Dans ce dernier cas, les juridictions européennes donnent généralement raison aux passagers lorsque le dossier est bien constitué. Les compagnies à bas coût notamment sont connues pour résister jusqu'au tribunal.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">
+          Dois-je passer par un médiateur avant d'aller au tribunal ?
+          <div class="faq-chevron">▾</div>
+        </div>
+        <div class="faq-a">
+          <strong>Oui, en France, depuis le 7 février 2026, la médiation de la consommation est obligatoire</strong> préalablement à tout recours judiciaire (art. L616-1 Code de la consommation, modifié). La <strong>Médiation Tourisme et Voyage (MTV)</strong> est l'organisme compétent pour les litiges avec les compagnies aériennes. La procédure est gratuite pour le consommateur et dure environ 90 jours. En cas d'échec, vous pouvez alors saisir le tribunal. Dans les autres États membres, vérifiez la loi nationale applicable.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">
+          Puis-je réclamer en plus de l'indemnisation forfaitaire ?
+          <div class="faq-chevron">▾</div>
+        </div>
+        <div class="faq-a">
+          Oui. Le règlement CE 261/2004 précise (art. 12) qu'il n'affecte pas les droits des passagers à obtenir une indemnisation supplémentaire en vertu du droit national. Vous pouvez donc demander, en sus de l'indemnisation forfaitaire, le remboursement de frais supplémentaires effectivement engagés (hôtel, transport alternatif, repas non pris en charge, etc.) sur la base du droit commun de la responsabilité contractuelle.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">
+          Les vols en correspondance sont-ils couverts ?
+          <div class="faq-chevron">▾</div>
+        </div>
+        <div class="faq-a">
+          Oui, si votre vol fait partie d'un trajet avec correspondance réservé sous un seul et même numéro de réservation. La CJUE a précisé (arrêt Folkerts, C-11/11, 2013) que c'est le retard à la destination finale qui compte. Si vous arrivez à votre destination finale avec 3 heures ou plus de retard à cause d'une correspondance manquée, vous avez droit à l'indemnisation, même si le premier vol était à l'heure.
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══ FOOTER ════════════════════════════════════════════════════════════ -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-logo">
+      <span style="font-size:1.3rem">✈</span> FlightRight Simulator
+    </div>
+    <div class="footer-legal">
+      <strong>Mention légale obligatoire :</strong> Cet outil est fourni à titre informatif uniquement et ne constitue pas un conseil juridique. Les résultats sont indicatifs et basés sur une analyse automatique du règlement CE 261/2004. Consultez un professionnel du droit pour toute situation spécifique. FlightRight Simulator décline toute responsabilité quant à l'utilisation des informations fournies.
+    </div>
+    <div class="footer-links">
+      <a href="#simulator">Simulateur</a>
+      <a href="#faq">FAQ</a>
+      <a href="#what-if-refused">Recours</a>
+      <a href="/admin">Admin</a>
+    </div>
+    <div class="footer-copy">
+      © 2026 FlightRight Simulator — Règlement (CE) n° 261/2004 du 11 février 2004
+    </div>
+  </div>
+</footer>
+
+<!-- ═══ TOAST ══════════════════════════════════════════════════════════════ -->
+<div id="toast"></div>
+
+<!-- ═══ SCRIPTS ═══════════════════════════════════════════════════════════ -->
+<script src="js/airports.js"></script>
+<script src="js/calculator.js"></script>
+<script src="js/letter.js"></script>
+<script src="js/app.js"></script>
+
+</body>
+</html>
