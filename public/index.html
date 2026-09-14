@@ -14,7 +14,7 @@
 
 <!-- ═══ BANNIÈRE ALERTE ══════════════════════════════════════════════════ -->
 <div id="alert-banner">
-  ⚠️&nbsp; <strong>Révision en cours&nbsp;:</strong> une proposition de réforme du règlement CE 261/2004 est en discussion au niveau européen. Elle pourrait réduire certains montants et relever le seuil de déclenchement. <strong>Agissez avant l'adoption du nouveau texte.</strong>
+  <strong>Réforme du règlement&nbsp;:</strong> l'accord conclu le 15&nbsp;juin&nbsp;2026 entre le Conseil et le Parlement <strong>maintient le seuil de 3&nbsp;heures et le barème 250&nbsp;/&nbsp;400&nbsp;/&nbsp;600&nbsp;€</strong>. Il ajoute une obligation de réacheminement sous 3&nbsp;heures et impose aux compagnies de répondre sous 30&nbsp;jours. Entrée en application attendue en 2027.
   <button class="close-banner" onclick="document.getElementById('alert-banner').style.display='none'" title="Fermer">✕</button>
 </div>
 
@@ -308,16 +308,32 @@
                 <input type="radio" name="reroutingOffered" value="yes">
                 <span class="radio-dot"></span>
                 <span class="rc-text">
-                  <span class="rc-title">Oui, réacheminement dans les délais</span>
-                  <span class="rc-sub">Peut réduire l'indemnisation de 50 %</span>
+                  <span class="rc-title">Oui, j'ai été replacé sur un autre vol</span>
+                  <span class="rc-sub">Les horaires de ce vol peuvent réduire ou supprimer l'indemnisation</span>
                 </span>
               </label>
               <label class="radio-card">
                 <input type="radio" name="reroutingOffered" value="no">
                 <span class="radio-dot"></span>
-                <span class="rc-text"><span class="rc-title">Non ou hors délai</span></span>
+                <span class="rc-text"><span class="rc-title">Non</span></span>
               </label>
             </div>
+          </div>
+
+          <div class="form-group" id="reroutingTimesGroup" style="display:none">
+            <label for="reroutingDepartureAdvance">Le vol de remplacement est parti&hellip; <span class="req">*</span></label>
+            <select id="reroutingDepartureAdvance" name="reroutingDepartureAdvance">
+              <option value="">Sélectionnez</option>
+              <option value="0">À l'heure de départ prévue, ou plus tard</option>
+              <option value="1">Moins d'une heure avant l'heure prévue</option>
+              <option value="2">Entre 1 h et 2 h avant l'heure prévue</option>
+              <option value="3">Plus de 2 h avant l'heure prévue</option>
+            </select>
+
+            <label for="reroutingArrivalDelay" style="margin-top:14px">Retard à l'arrivée à votre destination finale, en heures <span class="req">*</span></label>
+            <input type="number" id="reroutingArrivalDelay" name="reroutingArrivalDelay"
+                   min="0" max="72" step="0.5" placeholder="ex. 3,5">
+            <span class="field-hint">Écart entre l'heure d'arrivée initialement prévue et l'heure à laquelle vous êtes réellement arrivé. C'est cette durée qui commande la réduction de 50 % de l'article 7 §2.</span>
           </div>
         </div>
 
@@ -593,7 +609,7 @@
         <div class="refuse-step-num">4</div>
         <div>
           <h3>Recours judiciaire</h3>
-          <p>Après l'échec de la médiation, saisissez le tribunal judiciaire de votre domicile (sauf clause contraire dans les CGV). Pour les litiges ≤&nbsp;5&nbsp;000&nbsp;€, la procédure simplifiée (art. 843 CPC) est possible sans avocat. Conservez tous vos justificatifs et correspondances.</p>
+          <p>Après l'échec de la médiation, saisissez le tribunal judiciaire de votre domicile (sauf clause contraire dans les CGV). Attention&nbsp;: depuis le <strong>7&nbsp;février 2026</strong>, le décret n°&nbsp;2025-772 du 5&nbsp;août 2025 fait de <strong>l'assignation la voie unique</strong> pour ce contentieux — la requête simplifiée de l'article 843 du code de procédure civile n'est plus ouverte, même en dessous de 5&nbsp;000&nbsp;€. Il faut donc passer par un commissaire de justice, pour un coût de signification de l'ordre de 50 à 150&nbsp;€, et justifier de la tentative de médiation à peine d'irrecevabilité. Le même décret réserve l'action commune aux passagers unis par un lien personnel (parenté jusqu'au 4<sup>e</sup>&nbsp;degré ou vie commune)&nbsp;: les regroupements de passagers sans lien entre eux ne sont plus recevables. Conservez tous vos justificatifs et correspondances.</p>
         </div>
       </div>
     </div>
