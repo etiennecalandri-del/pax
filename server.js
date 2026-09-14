@@ -64,6 +64,15 @@ app.post('/api/simulations', (req, res) => {
   }
 });
 
+// Même protection pour l'API stats
+app.use('/api/admin', (req, res, next) => {
+  const adminToken = process.env.ADMIN_TOKEN;
+  if (adminToken && req.query.token !== adminToken) {
+    return res.status(401).json({ error: 'Non autorisé' });
+  }
+  next();
+});
+
 // GET /api/admin/stats — aggregate statistics
 app.get('/api/admin/stats', (req, res) => {
   try {
@@ -128,15 +137,6 @@ app.get('/admin', (req, res) => {
     return res.status(401).send('Accès refusé. Ajoutez ?token=VOTRE_TOKEN à l\'URL.');
   }
   res.sendFile(path.join(__dirname, 'public', 'admin.html'));
-});
-
-// Même protection pour l'API stats
-app.use('/api/admin', (req, res, next) => {
-  const adminToken = process.env.ADMIN_TOKEN;
-  if (adminToken && req.query.token !== adminToken) {
-    return res.status(401).json({ error: 'Non autorisé' });
-  }
-  next();
 });
 
 // ── Start ────────────────────────────────────────────────────────────────────
