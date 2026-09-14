@@ -41,6 +41,15 @@ document.addEventListener('DOMContentLoaded', () => {
         r.value === 'yes' ? 'flex' : 'none';
     });
   });
+
+  // Même logique pour le refus d'embarquement : l'exclusion de l'art. 5 §1 c)
+  // n'y a pas cours, mais la réduction de l'art. 7 §2 s'y applique.
+  document.querySelectorAll('input[name="dbReroutingOffered"]').forEach(r => {
+    r.addEventListener('change', () => {
+      document.getElementById('dbReroutingTimesGroup').style.display =
+        r.value === 'yes' ? 'flex' : 'none';
+    });
+  });
 });
 
 // ── Airport Autocomplete ──────────────────────────────────────────────────────
@@ -263,6 +272,14 @@ function validateStep(step) {
       if (incType.value === 'delay' && !document.querySelector('input[name="delayDuration"]:checked')) {
         showError('err-incident', 'Veuillez indiquer la durée du retard.'); ok = false;
       }
+      if (incType.value === 'denied_boarding') {
+        const dbRer = document.querySelector('input[name="dbReroutingOffered"]:checked');
+        if (!dbRer) {
+          showError('err-incident', 'Veuillez indiquer si la compagnie vous a replacé sur un autre vol.'); ok = false;
+        } else if (dbRer.value === 'yes' && document.getElementById('dbReroutingArrivalDelay').value === '') {
+          showError('err-incident', 'Indiquez votre retard à l\'arrivée : il détermine si l\'indemnisation est réduite de moitié.'); ok = false;
+        }
+      }
       if (incType.value === 'cancellation') {
         const notice = document.querySelector('input[name="cancellationNotice"]:checked');
         if (!notice) {
@@ -324,6 +341,16 @@ function collectFormData() {
 
   fd.reroutingDepartureAdvance = document.getElementById('reroutingDepartureAdvance').value;
   fd.reroutingArrivalDelay     = document.getElementById('reroutingArrivalDelay').value;
+
+  // Le refus d'embarquement a ses propres champs (pas d'exclusion art. 5 §1 c,
+  // donc pas de question sur l'avance au départ) : on les réinjecte dans le
+  // même contrat de données pour le moteur.
+  if (fd.incidentType === 'denied_boarding') {
+    const dbRerouting = document.querySelector('input[name="dbReroutingOffered"]:checked');
+    fd.reroutingOffered          = dbRerouting ? dbRerouting.value : '';
+    fd.reroutingDepartureAdvance = '';
+    fd.reroutingArrivalDelay     = document.getElementById('dbReroutingArrivalDelay').value;
+  }
 
   const ec = document.querySelector('input[name="extraordinaryCircumstances"]:checked');
   fd.extraordinaryCircumstances = ec ? ec.value : '';
