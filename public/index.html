@@ -345,6 +345,32 @@
               <p>Le refus d'embarquement involontaire (surbooking) donne droit à une indemnisation immédiate. Aucune exception pour "circonstances extraordinaires" n'est applicable dans ce cas (art. 4 CE 261/2004).</p>
             </div>
           </div>
+
+          <div class="form-group">
+            <label>La compagnie vous a-t-elle replacé sur un autre vol ? <span class="req">*</span></label>
+            <div class="radio-group">
+              <label class="radio-card">
+                <input type="radio" name="dbReroutingOffered" value="yes">
+                <span class="radio-dot"></span>
+                <span class="rc-text">
+                  <span class="rc-title">Oui</span>
+                  <span class="rc-sub">Une arrivée peu décalée peut réduire l'indemnisation de moitié</span>
+                </span>
+              </label>
+              <label class="radio-card">
+                <input type="radio" name="dbReroutingOffered" value="no">
+                <span class="radio-dot"></span>
+                <span class="rc-text"><span class="rc-title">Non</span></span>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-group" id="dbReroutingTimesGroup" style="display:none">
+            <label for="dbReroutingArrivalDelay">Retard à l'arrivée à votre destination finale, en heures <span class="req">*</span></label>
+            <input type="number" id="dbReroutingArrivalDelay" name="dbReroutingArrivalDelay"
+                   min="0" max="72" step="0.5" placeholder="ex. 3,5">
+            <span class="field-hint">Écart entre l'heure d'arrivée initialement prévue et l'heure à laquelle vous êtes réellement arrivé. En deçà de 2 h, 3 h ou 4 h selon la distance du vol, l'indemnisation est réduite de 50 % (art. 7 §2).</span>
+          </div>
         </div>
 
         <!-- Circonstances extraordinaires -->
