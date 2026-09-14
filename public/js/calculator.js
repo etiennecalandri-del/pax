@@ -211,6 +211,20 @@ function calculateEligibility(data) {
     result.assistanceRights = _assistanceCancellationDenied();
     result.successProbability = 93;
     result.reasons.push('Le refus d\'embarquement involontaire ouvre droit à une indemnisation immédiate — aucune exception pour circonstances extraordinaires (art. 4 §3).');
+
+    // La réduction de l'article 7 §2 s'applique aussi au refus d'embarquement
+    // dès lors qu'un réacheminement a été proposé au titre de l'article 8.
+    if (data.reroutingOffered === 'yes') {
+      const arrivalDelay = _toHours(data.reroutingArrivalDelay);
+      if (arrivalDelay === null) {
+        result.warnings.push(
+          'Le retard à l\'arrivée du vol de remplacement n\'a pas été renseigné : ' +
+          'la réduction éventuelle de l\'article 7 §2 n\'a pas pu être vérifiée. ' +
+          'Le montant affiché est le montant plein.'
+        );
+      }
+      _applyArt7Reduction(result, arrivalDelay);
+    }
   }
 
   // ── 6. Circonstances extraordinaires ────────────────────────────────────
@@ -307,6 +321,19 @@ function _applyRerouting(result, data, lateNotice) {
   }
 
   // 2. Réduction de 50 % — art. 7 §2
+  _applyArt7Reduction(result, arrivalDelay);
+}
+
+/**
+ * Art. 7 §2 — réduction de 50 % de l'indemnisation lorsque le réacheminement
+ * amène le passager à destination finale dans la limite de 2 h (≤ 1 500 km),
+ * 3 h (intra-UE ou 1 500-3 500 km) ou 4 h (au-delà).
+ *
+ * Le texte vise le réacheminement proposé au titre de l'article 8 : il joue
+ * donc aussi bien pour l'annulation que pour le refus d'embarquement. Seule
+ * l'exclusion de l'article 5 §1 c) est propre à l'annulation.
+ */
+function _applyArt7Reduction(result, arrivalDelay) {
   if (arrivalDelay === null) return;
 
   const threshold = result.distanceCategory === 'short' ? 2
