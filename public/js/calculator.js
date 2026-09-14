@@ -87,8 +87,15 @@ function calculateEligibility(data) {
     result.reasons.push('Aucune réservation confirmée — le règlement exige une réservation valide (art. 3 §2a).');
     return result;
   }
-  if (data.checkedIn === 'no' && data.incidentType !== 'denied_boarding') {
-    result.reasons.push('Non présenté à l\'enregistrement dans les délais — condition requise (art. 3 §2a), sauf en cas de refus d\'embarquement.');
+  // La condition de présentation à l'enregistrement (art. 3 §2 a) ne joue que
+  // pour le retard. Elle est écartée en cas d'annulation (orientations
+  // interprétatives de la Commission, 2024) comme en cas de refus
+  // d'embarquement annoncé par anticipation (CJUE, LATAM Airlines Group,
+  // C-238/22, 21 déc. 2023) : on ne peut exiger d'un passager prévenu à
+  // l'avance qu'il se présente à un vol qui n'aura pas lieu, ou dont on lui a
+  // déjà refusé l'accès.
+  if (data.checkedIn === 'no' && data.incidentType === 'delay') {
+    result.reasons.push('Non présenté à l\'enregistrement dans les délais — condition requise en cas de retard (art. 3 §2 a).');
     return result;
   }
 
@@ -176,30 +183,21 @@ function calculateEligibility(data) {
       result.assistanceRights = ['Remboursement intégral du billet (art. 8 §1a).'];
       result.successProbability = 0;
       return result;
-    } else if (data.cancellationNotice === '7-14') {
-      result.eligible = true;
-      result.status = 'eligible';
-      result.legalArticles = ['Art. 5 §1 c) ii) CE 261/2004', 'Art. 7 CE 261/2004'];
-      result.assistanceRights = _assistanceCancellationDenied();
-      result.successProbability = 80;
-      // Réduction 50 % si réacheminement proposé dans les délais
-      if (data.reroutingOffered === 'yes') {
-        result.amountReduced = true;
-        result.amount = result.amount / 2;
-        result.warnings.push('Réacheminement accepté dans les délais → indemnisation réduite de 50 % (art. 7 §2).');
-      }
     } else {
-      // < 7 jours
+      // Notification à moins de 14 jours : le droit à indemnisation est ouvert,
+      // sous réserve de l'offre de réacheminement (art. 5 §1 c) ii) et iii)).
+      const lateNotice = data.cancellationNotice === '<7';
       result.eligible = true;
       result.status = 'eligible';
-      result.legalArticles = ['Art. 5 §1 c) iii) CE 261/2004', 'Art. 7 CE 261/2004'];
+      result.legalArticles = [
+        lateNotice ? 'Art. 5 §1 c) iii) CE 261/2004' : 'Art. 5 §1 c) ii) CE 261/2004',
+        'Art. 7 CE 261/2004',
+      ];
       result.assistanceRights = _assistanceCancellationDenied();
-      result.successProbability = 85;
-      if (data.reroutingOffered === 'yes') {
-        result.amountReduced = true;
-        result.amount = result.amount / 2;
-        result.warnings.push('Réacheminement accepté dans les délais → indemnisation réduite de 50 % (art. 7 §2).');
-      }
+      result.successProbability = lateNotice ? 85 : 80;
+
+      _applyRerouting(result, data, lateNotice);
+      if (!result.eligible) return result;
     }
 
   } else if (data.incidentType === 'denied_boarding') {
@@ -254,6 +252,89 @@ function calculateEligibility(data) {
   }
 
   return result;
+}
+
+// ── Réacheminement : art. 5 §1 c) puis art. 7 §2 ────────────────────────────
+/**
+ * Applique dans l'ordre les deux régimes du réacheminement, qui sont distincts
+ * et souvent confondus :
+ *   1. Art. 5 §1 c) ii) et iii) — si le réacheminement tient dans les fenêtres
+ *      légales, le droit à indemnisation est EXCLU (et non réduit).
+ *   2. Art. 7 §2 — à défaut d'exclusion, l'indemnisation est réduite de 50 %
+ *      si l'arrivée à destination finale ne dépasse pas l'heure prévue de
+ *      2 h (≤ 1 500 km), 3 h (intra-UE ou 1 500-3 500 km) ou 4 h (au-delà).
+ *
+ * Les deux tests reposent sur des faits distincts : l'avance du départ de
+ * remplacement sur l'heure de départ prévue, et le retard d'arrivée à
+ * destination finale.
+ */
+function _applyRerouting(result, data, lateNotice) {
+  if (data.reroutingOffered !== 'yes') return;
+
+  const advance      = _toHours(data.reroutingDepartureAdvance);
+  const arrivalDelay = _toHours(data.reroutingArrivalDelay);
+
+  // 1. Exclusion — art. 5 §1 c) ii) (7-14 j) et iii) (< 7 j)
+  const maxAdvance = lateNotice ? 1 : 2;
+  const maxArrival = lateNotice ? 2 : 4;
+
+  if (advance !== null && arrivalDelay !== null &&
+      advance <= maxAdvance && arrivalDelay < maxArrival) {
+    result.eligible = false;
+    result.status   = 'not_eligible';
+    result.amount   = 0;
+    result.amountReduced = false;
+    result.successProbability = 5;
+    result.legalArticles = [
+      lateNotice ? 'Art. 5 §1 c) iii) CE 261/2004' : 'Art. 5 §1 c) ii) CE 261/2004',
+    ];
+    result.reasons.push(
+      'Le réacheminement proposé tient dans les limites de l\'article 5 §1 c) ' +
+      (lateNotice ? 'iii' : 'ii') + ') — départ au plus tôt ' + maxAdvance +
+      ' h avant l\'heure prévue et arrivée moins de ' + maxArrival +
+      ' h après l\'heure prévue. Dans cette hypothèse, aucune indemnisation ' +
+      'n\'est due. Les droits à prise en charge et à assistance restent entiers.'
+    );
+    return;
+  }
+
+  if (advance === null || arrivalDelay === null) {
+    result.warnings.push(
+      'Les horaires du vol de remplacement n\'ont pas été renseignés : ni ' +
+      'l\'exclusion de l\'article 5 §1 c) ni la réduction de l\'article 7 §2 ' +
+      'n\'ont pu être vérifiées. Le montant affiché est le montant plein.'
+    );
+  }
+
+  // 2. Réduction de 50 % — art. 7 §2
+  if (arrivalDelay === null) return;
+
+  const threshold = result.distanceCategory === 'short' ? 2
+                  : result.distanceCategory === 'long'  ? 4
+                  : 3;
+
+  if (arrivalDelay <= threshold) {
+    result.amountReduced = true;
+    result.amount = result.amount / 2;
+    result.warnings.push(
+      'Arrivée à destination finale avec ' + _formatHours(arrivalDelay) +
+      ' de retard, soit dans la limite de ' + threshold +
+      ' h applicable à ce vol : l\'indemnisation est réduite de 50 % (art. 7 §2).'
+    );
+  }
+}
+
+function _toHours(v) {
+  if (v === undefined || v === null || v === '') return null;
+  const n = Number(v);
+  return Number.isFinite(n) && n >= 0 ? n : null;
+}
+
+function _formatHours(h) {
+  const hours = Math.floor(h);
+  const mins  = Math.round((h - hours) * 60);
+  if (!hours) return mins + ' min';
+  return mins ? hours + ' h ' + String(mins).padStart(2, '0') : hours + ' h';
 }
 
 // ── Helpers droits d'assistance ─────────────────────────────────────────────
