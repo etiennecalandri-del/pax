@@ -27,7 +27,18 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('input[name="cancellationNotice"]').forEach(r => {
     r.addEventListener('change', () => {
       const rg = document.getElementById('reroutingGroup');
-      rg.style.display = (r.value === '7-14' || r.value === '<7') ? 'block' : 'none';
+      const show = (r.value === '7-14' || r.value === '<7');
+      rg.style.display = show ? 'block' : 'none';
+      if (!show) document.getElementById('reroutingTimesGroup').style.display = 'none';
+    });
+  });
+
+  // Les horaires du vol de remplacement ne sont demandés que s'il y a eu
+  // réacheminement : ce sont eux qui commandent l'art. 5 §1 c) et l'art. 7 §2.
+  document.querySelectorAll('input[name="reroutingOffered"]').forEach(r => {
+    r.addEventListener('change', () => {
+      document.getElementById('reroutingTimesGroup').style.display =
+        r.value === 'yes' ? 'flex' : 'none';
     });
   });
 });
@@ -252,8 +263,23 @@ function validateStep(step) {
       if (incType.value === 'delay' && !document.querySelector('input[name="delayDuration"]:checked')) {
         showError('err-incident', 'Veuillez indiquer la durée du retard.'); ok = false;
       }
-      if (incType.value === 'cancellation' && !document.querySelector('input[name="cancellationNotice"]:checked')) {
-        showError('err-incident', 'Veuillez indiquer le délai de prévenance.'); ok = false;
+      if (incType.value === 'cancellation') {
+        const notice = document.querySelector('input[name="cancellationNotice"]:checked');
+        if (!notice) {
+          showError('err-incident', 'Veuillez indiquer le délai de prévenance.'); ok = false;
+        } else if (notice.value === '7-14' || notice.value === '<7') {
+          const rer = document.querySelector('input[name="reroutingOffered"]:checked');
+          if (!rer) {
+            showError('err-incident', 'Veuillez indiquer si un réacheminement vous a été proposé.'); ok = false;
+          } else if (rer.value === 'yes') {
+            const adv = document.getElementById('reroutingDepartureAdvance').value;
+            const arr = document.getElementById('reroutingArrivalDelay').value;
+            if (!adv || arr === '') {
+              showError('err-incident', 'Indiquez les horaires du vol de remplacement : ce sont eux qui déterminent si l\'indemnisation est due, réduite ou exclue.');
+              ok = false;
+            }
+          }
+        }
       }
     }
   }
@@ -295,6 +321,9 @@ function collectFormData() {
 
   const rerouting = document.querySelector('input[name="reroutingOffered"]:checked');
   fd.reroutingOffered = rerouting ? rerouting.value : '';
+
+  fd.reroutingDepartureAdvance = document.getElementById('reroutingDepartureAdvance').value;
+  fd.reroutingArrivalDelay     = document.getElementById('reroutingArrivalDelay').value;
 
   const ec = document.querySelector('input[name="extraordinaryCircumstances"]:checked');
   fd.extraordinaryCircumstances = ec ? ec.value : '';
