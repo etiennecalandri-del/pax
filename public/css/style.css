@@ -228,6 +228,7 @@ input:focus, select:focus, textarea:focus {
 }
 input.error, select.error { border-color: var(--red); }
 .field-error { font-size: .78rem; color: var(--red); margin-top: 4px; }
+.field-hint { font-size: .8rem; color: var(--gray-500); line-height: 1.45; }
 
 /* Airport autocomplete */
 .ac-wrapper { position: relative; }
