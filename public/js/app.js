@@ -30,9 +30,6 @@ document.addEventListener('DOMContentLoaded', () => {
       rg.style.display = (r.value === '7-14' || r.value === '<7') ? 'block' : 'none';
     });
   });
-
-  // Load stat for hero
-  loadHeroStat();
 });
 
 // ── Airport Autocomplete ──────────────────────────────────────────────────────
@@ -643,17 +640,4 @@ function showToast(msg, type = '') {
   t.textContent = msg;
   t.className = 'show' + (type ? ' ' + type : '');
   setTimeout(() => { t.className = ''; }, 3000);
-}
-
-// ── Hero stat loader ──────────────────────────────────────────────────────────
-async function loadHeroStat() {
-  try {
-    const res = await fetch('/api/admin/stats');
-    if (!res.ok) return;
-    const data = await res.json();
-    const el = document.getElementById('statTotal');
-    if (el && data.total !== undefined) {
-      el.textContent = data.total.toLocaleString('fr-FR');
-    }
-  } catch (_) { /* Ignore */ }
 }
