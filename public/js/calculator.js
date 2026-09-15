@@ -55,6 +55,18 @@ const PRESCRIPTION_DATA = {
   IS: { years: 4,  label: 'Islande',      text: '4 ans' },
 };
 
+// Territoires français dotés de leur propre code ISO dans la base aéroports,
+// mais où le code civil s'applique : la prescription y est celle de
+// l'article 2224 (5 ans), comme en métropole. Guadeloupe, Martinique, Réunion,
+// Guyane, Mayotte, Saint-Martin, Saint-Pierre-et-Miquelon.
+const FRENCH_CIVIL_LAW_CC = ['GP', 'MQ', 'RE', 'GF', 'YT', 'MF', 'PM'];
+
+/** Ramène un code pays au droit dont relève réellement la prescription. */
+function normalizeCountryCode(cc) {
+  if (!cc) return cc;
+  return FRENCH_CIVIL_LAW_CC.indexOf(cc) >= 0 ? 'FR' : cc;
+}
+
 /**
  * Calcule l'éligibilité et l'indemnisation selon CE 261/2004.
  * @param {Object} data  — données du formulaire (toutes les étapes)
@@ -247,7 +259,7 @@ function calculateEligibility(data) {
   }
 
   // ── 7. Prescription ──────────────────────────────────────────────────────
-  const depCountry = data.departureCountry || (depAp ? depAp.cc : null);
+  const depCountry = normalizeCountryCode(data.departureCountry || (depAp ? depAp.cc : null));
   if (depCountry && PRESCRIPTION_DATA[depCountry]) {
     const p = PRESCRIPTION_DATA[depCountry];
     result.prescriptionYears = p.years;
