@@ -42,6 +42,12 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  // Le passager reprend la main sur le pays de départ : l'indication
+  // « renseigné automatiquement » n'a plus lieu d'être.
+  document.getElementById('departureCountry').addEventListener('change', () => {
+    document.getElementById('departureCountryHint').style.display = 'none';
+  });
+
   // Même logique pour le refus d'embarquement : l'exclusion de l'art. 5 §1 c)
   // n'y a pas cours, mais la réduction de l'art. 7 §2 s'y applique.
   document.querySelectorAll('input[name="dbReroutingOffered"]').forEach(r => {
@@ -114,8 +120,39 @@ function renderAC(airports, dropdown, input, codeId, labelId) {
       if (labelId) state.formData[labelId] = item.dataset.label;
       dropdown.classList.remove('open');
       clearError(input.id === 'depInput' ? 'err-dep' : 'err-arr');
+      if (input.id === 'depInput') syncDepartureCountry(item.dataset.iata);
     });
   });
+}
+
+// ── Pays de départ : déduit de l'aéroport ────────────────────────────────────
+/**
+ * Le pays de départ ne sert qu'à déterminer le délai de prescription
+ * applicable. Il se déduit de l'aéroport que le passager vient de choisir :
+ * inutile de le lui demander une seconde fois. Le champ reste modifiable, pour
+ * les cas où notre base d'aéroports serait incomplète ou le rattachement
+ * discutable.
+ */
+function syncDepartureCountry(iata) {
+  const select = document.getElementById('departureCountry');
+  const hint   = document.getElementById('departureCountryHint');
+  const ap     = (typeof AIRPORTS_MAP !== 'undefined') ? AIRPORTS_MAP[iata] : null;
+  if (!select || !ap || !ap.cc) return;
+
+  // normalizeCountryCode rattache les territoires français (Guadeloupe,
+  // Réunion, Mayotte…) au droit métropolitain pour la prescription.
+  const cc = (typeof normalizeCountryCode === 'function') ? normalizeCountryCode(ap.cc) : ap.cc;
+  const known = Array.prototype.some.call(select.options, o => o.value === cc);
+  select.value = known ? cc : 'OTHER';
+
+  if (hint) {
+    const label = select.options[select.selectedIndex].textContent.trim();
+    hint.textContent = known
+      ? 'Renseigné automatiquement d\'après votre aéroport de départ (' + iata + ' — ' + label + '). Modifiable si nécessaire.'
+      : 'Aéroport ' + iata + ' rattaché à un pays hors de la liste : vérifiez la loi nationale applicable à la prescription.';
+    hint.style.display = 'block';
+  }
+  clearError('err-country');
 }
 
 // ── Airline Autocomplete ──────────────────────────────────────────────────────
